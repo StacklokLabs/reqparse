@@ -8,19 +8,22 @@ import (
 	"log"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 )
 
 type Server struct {
 	port       int
-	verbose    bool
 	formatType string
+	pretty     bool
+	headers    bool
 }
 
-func New(port int, verbose bool, formatType string) *Server {
+func New(port int, formatType string, pretty bool, headers bool) *Server {
 	return &Server{
 		port:       port,
-		verbose:    verbose,
 		formatType: formatType,
+		pretty:     pretty,
+		headers:    headers,
 	}
 }
 
@@ -43,20 +46,48 @@ func (s *Server) Start(ctx context.Context) error {
 	return server.ListenAndServe()
 }
 
-func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
-	// Log raw request if verbose mode is enabled
-	if s.verbose {
-		if rawRequest, err := httputil.DumpRequest(r, true); err == nil {
-			log.Printf("Raw Request:\n%s", string(rawRequest))
+func (s *Server) formatJSON(data interface{}) string {
+	if s.pretty {
+		jsonBytes, err := json.MarshalIndent(data, "", "    ")
+		if err != nil {
+			return fmt.Sprintf("Error formatting JSON: %v", err)
 		}
+		jsonStr := string(jsonBytes)
+
+		// Find the longest line in the JSON
+		maxWidth := 0
+		lines := strings.Split(jsonStr, "\n")
+		for _, line := range lines {
+			lineLen := len(strings.TrimRight(line, " "))
+			if lineLen > maxWidth {
+				maxWidth = lineLen
+			}
+		}
+
+		// Use the exact width of the content
+		width := maxWidth
+		if width < 20 {
+			width = 20
+		}
+
+		delimiter := "\n=========="
+		return fmt.Sprintf("%s\nJSON START%s\n%s\n%s\nJSON END%s",
+			delimiter, delimiter, jsonStr, delimiter, delimiter)
 	}
 
+	jsonBytes, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Sprintf("Error formatting JSON: %v", err)
+	}
+	return fmt.Sprintf("JSON-Body: %s", string(jsonBytes))
+}
+
+func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Always log the method
 	log.Printf("Received %s request to %s", r.Method, r.URL.Path)
 
 	// Parse JSON body if present
 	var bodyData interface{}
-	var formatted string
 	if r.Header.Get("Content-Type") == "application/json" {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -71,16 +102,24 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// Convert and output the data in the specified format
-			var err error
-			formatted, err = s.formatData(bodyData)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Error formatting data: %v", err), http.StatusInternalServerError)
-				return
+			// Show headers if requested
+			if s.headers {
+				if rawRequest, err := httputil.DumpRequest(r, true); err == nil {
+					log.Printf("Headers:\n%s", string(rawRequest))
+				}
 			}
 
-			if s.verbose {
-				log.Printf("Formatted data:\n%s", formatted)
+			// Always show JSON body
+			log.Print(s.formatJSON(bodyData))
+
+			// Show struct format if specified
+			if s.formatType != "" {
+				formatted, err := s.formatData(bodyData)
+				if err != nil {
+					http.Error(w, fmt.Sprintf("Error formatting data: %v", err), http.StatusInternalServerError)
+					return
+				}
+				log.Printf("Struct format:\n%s", formatted)
 			}
 		}
 	}
@@ -88,10 +127,9 @@ func (s *Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	// Send response
 	w.Header().Set("Content-Type", "application/json")
 	response := map[string]interface{}{
-		"message":   "Request processed successfully",
-		"method":    r.Method,
-		"path":      r.URL.Path,
-		"formatted": formatted,
+		"message": "Request processed successfully",
+		"method":  r.Method,
+		"path":    r.URL.Path,
 	}
 	encoder := json.NewEncoder(w)
 	encoder.SetEscapeHTML(false)
