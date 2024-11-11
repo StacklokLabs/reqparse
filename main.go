@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/lukehinds/reqparser/server"
+	"github.com/stackloklabs/reqparser/server"
 )
 
 var (
