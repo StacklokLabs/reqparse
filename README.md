@@ -16,13 +16,13 @@ ReqParser is a HTTP request parsing and formatting tool that accepts and logs HT
 ## Installation
 
 ```bash
-go install github.com/lukehinds/reqparser@latest
+go install github.com/stackloklabs/reqparser@latest
 ```
 
 Or clone and build manually:
 
 ```bash
-git clone https://github.com/lukehinds/reqparser.git
+git clone https://github.com/stackloklabs/reqparser.git
 cd reqparser
 make build
 ```

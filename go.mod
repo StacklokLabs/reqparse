@@ -1,3 +1,3 @@
-module github.com/lukehinds/reqparser
+module github.com/stackloklabs/reqparser
 
 go 1.22.1
