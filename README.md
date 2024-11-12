@@ -11,7 +11,6 @@ ReqParser is a HTTP request parsing and formatting tool that accepts and logs HT
   - Rust structs (with serde attributes)
 - Pretty print JSON with delimiters
 - Optional HTTP headers display
-- Configurable port
 
 ## Installation
 
@@ -27,41 +26,14 @@ cd reqparser
 make build
 ```
 
-## Usage
-
-Start the server:
-
-```bash
-# Basic usage - shows compact JSON only
-./reqparser
-
-# Show pretty-printed JSON with delimiters
-./reqparser -pretty
-
-# Show HTTP headers
-./reqparser -headers
-
-# Generate Go struct and show JSON
-./reqparser -format go
-
-# Generate Rust struct and show pretty JSON
-./reqparser -format rust -pretty
-
-# Show headers and generate Go struct
-./reqparser -headers -format go
-
-# Specify a different port
-./reqparser -port 3000
-```
-
 ### Flag Behavior
 
-- Without `-format`: Shows only JSON output
-- With `-format`: Shows both struct definition and JSON output
 - With `-pretty`: Shows JSON with delimiters
 - Without `-pretty`: Shows compact JSON-Body format
 - With `-headers`: Shows HTTP headers
-- Without `-headers`: Headers are hidden
+- With `-format go|rust' Generates a struct
+
+* Note: Only parent structs, need to code up child struct generation 
 
 ### Example Outputs
 
@@ -134,17 +106,7 @@ Options:
         Show HTTP headers in output
   -version
         Show version information
-
-Behavior:
-  - Without -format: Shows only JSON (pretty or compact)
-  - With -format: Shows struct and JSON (pretty or compact)
-  - With -pretty: Shows JSON with delimiters
-  - Without -pretty: Shows compact JSON-Body
-  - With -headers: Shows HTTP headers
-  - Without -headers: Headers are hidden
 ```
-
-## Development
 
 ### Prerequisites
 
@@ -152,69 +114,3 @@ Behavior:
 - Make
 - golangci-lint (installed automatically via Makefile)
 - gosec (installed automatically via Makefile)
-
-### Available Make Commands
-
-```bash
-# Show all available commands
-make help
-
-# Build the binary
-make build
-
-# Run tests
-make test
-
-# Generate test coverage report
-make coverage
-
-# Run linter
-make lint
-
-# Format code
-make fmt
-
-# Run security check
-make sec
-
-# Clean up build artifacts
-make clean
-
-# Run all checks (format, lint, security, tests)
-make check
-
-# Build and run the binary
-make run
-```
-
-## Project Structure
-
-- `main.go`: Entry point and CLI interface
-- `server/server.go`: Core server implementation
-- `server/server_test.go`: Server tests
-- `Makefile`: Build and development commands
-- `.github/workflows/ci.yml`: CI/CD pipeline configuration
-
-## Continuous Integration
-
-The project uses GitHub Actions for CI/CD, which automatically:
-
-- Runs tests on multiple Go versions
-- Performs code linting
-- Checks code formatting
-- Runs security scanning
-- Generates test coverage reports
-- Creates releases (when tags are pushed)
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Run tests and checks (`make check`)
-4. Commit your changes (`git commit -m 'Add some amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
