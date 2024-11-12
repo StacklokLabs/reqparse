@@ -31,7 +31,7 @@ make build
 - With `-pretty`: Shows JSON with delimiters
 - Without `-pretty`: Shows compact JSON-Body format
 - With `-headers`: Shows HTTP headers
-- With `-format go|rust' Generates a struct
+- With `-format go|rust` Generates a struct
 
 * Note: Only parent structs, need to code up child struct generation 
 
